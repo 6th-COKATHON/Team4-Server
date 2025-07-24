@@ -37,3 +37,6 @@ out/
 .vscode/
 
 application-local.yml
+
+#GCS 서비스 키
+team4_gcs.json

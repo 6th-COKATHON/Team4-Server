@@ -4,10 +4,13 @@ import com.example.team4.domain.User;
 import com.example.team4.global.exception.user.UserNotFoundException;
 import com.example.team4.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.util.UUID;
+
+import static com.example.team4.global.exception.image.ImageErrorCode.IMAGE_UPLOAD_FAILED;
 import static com.example.team4.global.exception.user.UserErrorCode.NOT_FOUND;
 
 @Service
