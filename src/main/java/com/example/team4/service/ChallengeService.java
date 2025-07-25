@@ -1,9 +1,6 @@
 package com.example.team4.service;
 
-import com.example.team4.domain.Challenge;
-import com.example.team4.domain.Cycle;
-import com.example.team4.domain.CycleStatus;
-import com.example.team4.domain.User;
+import com.example.team4.domain.*;
 import com.example.team4.dto.request.ChallengeCreateRequest;
 import com.example.team4.dto.request.ChallengeUpdateRequest;
 import com.example.team4.dto.response.ChallengeResponse;
@@ -15,7 +12,6 @@ import com.example.team4.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import static com.example.team4.global.exception.challenge.ChallengeErrorCode.*;
 import static com.example.team4.global.exception.user.UserErrorCode.NOT_FOUND;
@@ -74,6 +70,14 @@ public class ChallengeService {
         }
 
         challenge.update(request, imageUrl);
+        // 다음 챌린지 상태 변경
+        // 사이클과챌린지순서가 같으면 true 반환
+        if(challengeRepository.existsByCycleIdAndChallengeOrder(challenge.getCycle().getId(), challenge.getChallengeOrder() + 1)) {
+            Challenge nextChallenge = challengeRepository.findByCycleIdAndChallengeOrder(challenge.getCycle().getId(), challenge.getChallengeOrder() + 1);
+            nextChallenge.setStatus(ChallengeStatus.ONGOING);
+        } else {
+            challenge.getCycle().setStatus(CycleStatus.COMPLETED);
+        }
     }
 
     // 챌린지 상세 조회

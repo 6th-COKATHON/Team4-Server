@@ -3,10 +3,7 @@ package com.example.team4.domain;
 import com.example.team4.dto.request.ChallengeCreateRequest;
 import com.example.team4.dto.request.ChallengeUpdateRequest;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,11 +41,13 @@ public class Challenge {
     private LocalDateTime createdAt;
     private String challengeImage;
     private String proofImage;
+
+    @Setter
     @Enumerated(EnumType.STRING)
     private ChallengeStatus status;
     private LocalDate startDate;
     private LocalDate endDate;
-    private int challenge_order;
+    private int challengeOrder;
 
     public static Challenge of(Cycle cycle, User user, ChallengeCreateRequest request, String imageUrl, int order) {
         return Challenge.builder()
@@ -63,7 +62,7 @@ public class Challenge {
                 .status(ChallengeStatus.NOT_STARTED) // 초기 상태는 NOT_STARTED
                 .startDate(null)
                 .endDate(null)
-                .challenge_order(order)
+                .challengeOrder(order)
                 .build();
     }
 

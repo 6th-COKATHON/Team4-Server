@@ -1,9 +1,6 @@
 package com.example.team4.service;
 
-import com.example.team4.domain.Challenge;
-import com.example.team4.domain.Cycle;
-import com.example.team4.domain.CycleStatus;
-import com.example.team4.domain.User;
+import com.example.team4.domain.*;
 import com.example.team4.dto.request.ChallengeUpdateRequest;
 import com.example.team4.dto.request.CycleUpdateRequest;
 import com.example.team4.dto.response.ChallengeListResponse;
@@ -56,6 +53,9 @@ public class CycleService {
         if(list.size() == cycle.getUserCount()) {
             cycleStatus = CycleStatus.ONGOING;
             cycle.setStatus(cycleStatus);
+            // 사이클에 속한 챌린지의 순서번호가 1인 것을 찾기
+            Challenge byCycleIdAndChallengeOrder = challengeRepository.findByCycleIdAndChallengeOrder(cycle.getId(), 1);
+            byCycleIdAndChallengeOrder.setStatus(ChallengeStatus.ONGOING);
         } else {
             cycleStatus = CycleStatus.NOT_STARTED;
             cycle.setStatus(cycleStatus);

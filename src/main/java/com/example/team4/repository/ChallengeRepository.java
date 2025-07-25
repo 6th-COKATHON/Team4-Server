@@ -13,4 +13,9 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
     List<Challenge> findAllByCycleId(Long cycleId);
 
     boolean existsByCycleIdAndUserId(Long cycleId, Long userId);
+
+
+    boolean existsByCycleIdAndChallengeOrder(Long cycleId, int order);
+
+    Challenge findByCycleIdAndChallengeOrder(Long cycleId, int order);
 }
