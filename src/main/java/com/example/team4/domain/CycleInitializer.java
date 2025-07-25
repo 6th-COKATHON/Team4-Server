@@ -20,7 +20,7 @@ public class CycleInitializer {
     public void initializeDefaultCycle() {
         // 이미 하나라도 존재하면 생성하지 않음
         if (cycleRepository.count() == 0) {
-            Cycle.init();
+            Cycle defaultCycle = Cycle.init();
             cycleRepository.save(defaultCycle);
             log.info("✅ 초기 사이클 생성 완료: {}", defaultCycle.getTitle());
         } else {

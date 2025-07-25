@@ -5,21 +5,25 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 @Configuration
+@Profile("!test")
 public class GoogleCloudStorageConfig {
 
     @Bean
     public Storage storage() throws IOException {
         // 1. 환경변수에서 GCP 서비스 계정 JSON 전체를 가져오기
-        String gcpPrivateKeyJson = System.getenv("GCP_PRIVATE_KEY");
+//        String gcpPrivateKeyJson = System.getenv("GCP_PRIVATE_KEY");
 
+        String gcpPrivateKeyJson = new String(new ClassPathResource("team4_gcs.json").getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         if (gcpPrivateKeyJson == null || gcpPrivateKeyJson.isBlank()) {
             throw new IllegalStateException("환경변수 GCP_PRIVATE_KEY가 설정되지 않았습니다.");
         }
