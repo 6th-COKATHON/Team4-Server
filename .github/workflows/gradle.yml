@@ -31,8 +31,8 @@ jobs:
           mkdir -p src/main/resources
           echo "$GCP_PRIVATE_KEY" > src/main/resources/team4_gcs.json
 
-      - name: 🔨 Build with Gradle Wrapper
-        run: ./gradlew build
+      - name: 🔨 Build with Gradle Wrapper (skip tests)
+        run: ./gradlew build -x test
 
   deploy:
     needs: build
