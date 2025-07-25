@@ -9,11 +9,13 @@ import lombok.Getter;
 public class ChallengeListResponse {
     private Long challengeId;
     private String title;
+    private String challengeStatus;
 
     public static ChallengeListResponse from(Challenge challenge) {
         return ChallengeListResponse.builder()
                 .challengeId(challenge.getId())
                 .title(challenge.getTitle())
+                .challengeStatus(challenge.getStatus().name())
                 .build();
     }
 }

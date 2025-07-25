@@ -31,7 +31,7 @@ public class ChallengeService {
     private final CycleRepository cycleRepository;
 
     // 챌린지 생성
-    public void createChallenge(Long userId, ChallengeCreateRequest request, MultipartFile image) {
+    public void createChallenge(Long userId, ChallengeCreateRequest request) {
         request.validate();
         // user 존재하는지
         User user = userRepository.findById(userId)
@@ -44,8 +44,8 @@ public class ChallengeService {
 
 
         String imageUrl = null;
-        if(image != null) {
-            imageUrl = imageService.uploadImage(image);
+        if(request.getImage() != null) {
+            imageUrl = imageService.uploadImage(request.getImage());
         }
         int order = (int) (challengeRepository.countByCycleId(cycle.getId()) + 1);
         challengeRepository.save(Challenge.of(cycle, user, request, imageUrl, order));
@@ -54,7 +54,7 @@ public class ChallengeService {
 
     // 챌린지 수정(챌린지 인증)
     // 챌린지 종료되면서 챌린지 상태 변경
-    public void updateChallenge(Long userId, Long challengeId, ChallengeUpdateRequest request, MultipartFile image) {
+    public void updateChallenge(Long userId, Long challengeId, ChallengeUpdateRequest request) {
         // user 존재하는지
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(NOT_FOUND));
@@ -69,8 +69,8 @@ public class ChallengeService {
         request.validate();
 
         String imageUrl = null;
-        if(image != null) {
-            imageUrl = imageService.uploadImage(image);
+        if(request.getImage() != null) {
+            imageUrl = imageService.uploadImage(request.getImage());
         }
 
         challenge.update(request, imageUrl);

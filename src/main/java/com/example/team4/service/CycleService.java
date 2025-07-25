@@ -39,12 +39,16 @@ public class CycleService {
 
 
     // 사이클별 챌린지 목록
-    public void getChallengesByCycleId(Long cycleId) {
+    public CycleResponse getChallengesByCycleId() {
         // 사이클 존재하는지
-        Cycle cycle = cycleRepository.findById(cycleId)
+        // cycle status가 Complete가 아닌 사이클 찾기
+        Cycle cycle = cycleRepository.findAllByStatusNot(CycleStatus.COMPLETED)
+                .stream()
+                .findFirst()
                 .orElseThrow(() -> new AppException(CYCLE_NOT_FOUND));
+
         // 사이클에 속한 챌린지 목록 조회
-        List<ChallengeListResponse> list = challengeRepository.findAllByCycleId(cycleId)
+        List<ChallengeListResponse> list = challengeRepository.findAllByCycleId(cycle.getId())
                 .stream()
                 .map(ChallengeListResponse::from)
                 .toList();
@@ -57,32 +61,25 @@ public class CycleService {
             cycle.setStatus(cycleStatus);
         }
 
-        CycleResponse.from(cycleStatus.name(), list);
+        return CycleResponse.from(cycleStatus.name(), list);
     }
 
     // 사이클 종료
-    public void updateChallenge(Long userId, Long cycleId, CycleUpdateRequest request, MultipartFile image) {
+    public void updateChallenge(Long cycleId, CycleUpdateRequest request) {
         // 사이클 존재하는지
         Cycle cycle = cycleRepository.findById(cycleId)
                 .orElseThrow(() -> new AppException(CYCLE_NOT_FOUND));
-        // user 존재하는지
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(NOT_FOUND));
 
         request.validate();
         String imageUrl = null;
-        if(image != null) {
-            imageUrl = imageService.uploadImage(image);
+        if(request.getImage() != null) {
+            imageUrl = imageService.uploadImage(request.getImage());
         }
         cycle.update(request, imageUrl);
     }
 
     // 완료된 사이클 목록 조회
-    public List<CompleteCycleResponse> getCompletedCycles(Long userId) {
-        // user 존재하는지
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(NOT_FOUND));
-
+    public List<CompleteCycleResponse> getCompletedCycles() {
         // 완료된 사이클 목록 조회
         List<Cycle> completedCycles = cycleRepository.findAllByStatus(CycleStatus.COMPLETED);
         return completedCycles.stream()

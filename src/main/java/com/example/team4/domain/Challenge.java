@@ -44,10 +44,11 @@ public class Challenge {
     private LocalDateTime createdAt;
     private String challengeImage;
     private String proofImage;
+    @Enumerated(EnumType.STRING)
     private ChallengeStatus status;
     private LocalDate startDate;
     private LocalDate endDate;
-    private int order;
+    private int challenge_order;
 
     public static Challenge of(Cycle cycle, User user, ChallengeCreateRequest request, String imageUrl, int order) {
         return Challenge.builder()
@@ -62,7 +63,7 @@ public class Challenge {
                 .status(ChallengeStatus.NOT_STARTED) // 초기 상태는 NOT_STARTED
                 .startDate(null)
                 .endDate(null)
-                .order(order)
+                .challenge_order(order)
                 .build();
     }
 

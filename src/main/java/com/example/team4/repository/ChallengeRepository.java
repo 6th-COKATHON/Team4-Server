@@ -11,4 +11,6 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 
     // cycle에 따른 챌린지 목록 조회
     List<Challenge> findAllByCycleId(Long cycleId);
+
+    boolean existsByCycleIdAndUserId(Long cycleId, Long userId);
 }
