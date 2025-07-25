@@ -17,25 +17,20 @@ public class GoogleCloudStorageConfig {
 
     @Bean
     public Storage storage() throws IOException {
-        // 1. 환경변수에서 private_key 값 가져오기
-        String privateKey = System.getenv("GCP_PRIVATE_KEY");
-        if (privateKey == null || privateKey.isBlank()) {
+        // 1. 환경변수에서 GCP 서비스 계정 JSON 전체를 가져오기
+        String gcpPrivateKeyJson = System.getenv("GCP_PRIVATE_KEY");
+
+        if (gcpPrivateKeyJson == null || gcpPrivateKeyJson.isBlank()) {
             throw new IllegalStateException("환경변수 GCP_PRIVATE_KEY가 설정되지 않았습니다.");
         }
 
-        // 2. team4_gcs.json 읽기
-        ClassPathResource resource = new ClassPathResource("team4_gcs.json");
-        String json = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        // 2. JSON 문자열을 InputStream으로 변환
+        InputStream credentialsStream = new ByteArrayInputStream(gcpPrivateKeyJson.getBytes(StandardCharsets.UTF_8));
 
-        // 3. 빈 private_key 자리에 주입
-        String modifiedJson = json.replace("\"private_key\": \"\"",
-                "\"private_key\": \"" + privateKey.replace("\n", "\\n") + "\"");
-
-        // 4. 주입된 JSON으로 GoogleCredentials 생성
-        InputStream credentialsStream = new ByteArrayInputStream(modifiedJson.getBytes(StandardCharsets.UTF_8));
+        // 3. GoogleCredentials 객체 생성
         GoogleCredentials credentials = GoogleCredentials.fromStream(credentialsStream);
 
-        // 5. GCP Storage 객체 반환
+        // 4. GCP Storage 객체 반환
         return StorageOptions.newBuilder()
                 .setProjectId("team4-prod")
                 .setCredentials(credentials)
