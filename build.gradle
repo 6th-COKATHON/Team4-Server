@@ -57,7 +57,7 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-bootjar {
+bootJar {
 	def timestamp = new Date().format("yyyyMMdd-HHmmss")
 	archiveFileName = "springboot-${version}-${timestamp}.jar"
 
