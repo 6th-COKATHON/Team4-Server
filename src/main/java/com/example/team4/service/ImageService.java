@@ -35,9 +35,8 @@ public class ImageService {
             storage.create(blobInfo, input.getInputStream());
 
             // 업로드된 파일의 URL 생성
-            String imageUrl = "https://storage.googleapis.com/" + bucketName + "/" + fileName;
 
-            return imageUrl;
+            return "https://storage.googleapis.com/" + bucketName + "/" + fileName;
         } catch (IOException e) {
             throw new ImageUploadFailException(IMAGE_UPLOAD_FAILED);
         }
