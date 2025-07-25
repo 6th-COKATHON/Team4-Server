@@ -40,4 +40,7 @@ public class UserController{
         return ResponseEntity.ok(DataResponse.from(userService.getUserInfo(userId)));
     }
 
+
+
+
 }

@@ -2,6 +2,7 @@ package com.example.team4.service;
 
 import com.example.team4.domain.Challenge;
 import com.example.team4.domain.Cycle;
+import com.example.team4.domain.CycleStatus;
 import com.example.team4.domain.User;
 import com.example.team4.dto.request.ChallengeCreateRequest;
 import com.example.team4.dto.request.ChallengeUpdateRequest;
@@ -36,14 +37,17 @@ public class ChallengeService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(NOT_FOUND));
         // cycle status가 Complete가 아닌 사이클 찾기
-        Cycle cycle = cycleRepository.findByStatusNot(Cycle.Status.COMPLETE)
+        Cycle cycle = cycleRepository.findAllByStatusNot(CycleStatus.COMPLETED)
+                .stream()
+                .findFirst()
                 .orElseThrow(() -> new AppException(CYCLE_NOT_FOUND));
+
 
         String imageUrl = null;
         if(image != null) {
             imageUrl = imageService.uploadImage(image);
         }
-        int order = (int) (challengeRepository.countByCycleId(cycleId) + 1);
+        int order = (int) (challengeRepository.countByCycleId(cycle.getId()) + 1);
         challengeRepository.save(Challenge.of(cycle, user, request, imageUrl, order));
     }
 

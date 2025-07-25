@@ -9,4 +9,7 @@ import java.util.List;
 
 public interface CycleRepository extends JpaRepository<Cycle, Long> {
     List<Cycle> findAllByStatus(CycleStatus cycleStatus);
+
+    //findByStatusNot
+    List<Cycle> findAllByStatusNot(CycleStatus cycleStatus);
 }

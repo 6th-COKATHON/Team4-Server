@@ -59,25 +59,29 @@ public class ChatService {
         //사용자가 참여한 채팅방 조회
         List<ChatRoom> chatRooms = chatRoomRepository.findAll();
 
-
+//        List<ChatRoom> chatRooms = List.of(
+//                new ChatRoom(1L, "General", "General discussion"),
+//                new ChatRoom(2L, "Sports", "Sports talk"),
+//                new ChatRoom(3L, "Technology", "Tech discussions")
+//        );
 
         //ChatRoom 객체를 ChatRoomDetailResponse로 변환
         return chatRooms.stream()
-                .map(chatRoom -> {
-                    ChatDetailResponse lastChatDetailResponse = getLastChatDetailResponse(chatRoom.getId());
-                    return new ChatRoomDetailResponse(
-                            chatRoom.getId(),
-                            chatRoom.getName(),
-                            chatRoom.getDescription(),
-                            lastChatDetailResponse);
-                })
+                .map(chatRoom -> new ChatRoomDetailResponse(
+                        chatRoom.getId(),
+                        chatRoom.getName(),
+                        chatRoom.getDescription(),
+                        getLastChatDetailResponse(chatRoom.getId())))
                 .toList();
+
     }
 
     private ChatDetailResponse getLastChatDetailResponse(Long chatRoomId) {
         //가장 최근 채팅 조회
         Chat chat = chatRepository.findTopByChatRoomIdOrderByIdDesc(chatRoomId);
-
+        if (chat == null) {
+            return null; // No chats found in this chat room
+        }
         return new ChatDetailResponse(
                 chat.getId(),
                 chat.getContent(),

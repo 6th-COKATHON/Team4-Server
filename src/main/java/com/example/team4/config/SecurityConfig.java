@@ -38,24 +38,31 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults()) // swagger 설정하다가 추가
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(Customizer.withDefaults()) // Swagger 관련 CORS 설정
+                .csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // stateless 세션 관리
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**") // swagger 허용
-                        .permitAll()
+                        .requestMatchers(
+                                "/swagger",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/api-docs",
+                                "/api-docs/**",
+                                "/v3/api-docs/**",
+                                "/v2/api-docs/**"  // 필요시 추가적인 Swagger URL을 허용
+                        ).permitAll() // Swagger 관련 경로는 인증 없이 접근 허용
                         .requestMatchers(
                                 "/api/v1/auth/login"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+                        ).permitAll() // 로그인 경로도 인증 없이 접근 허용
+                        .anyRequest().authenticated() // 그 외 요청은 인증 필요
                 )
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(customAuthenticationEntryPoint) // 인증 실패 시 처리할 EntryPoint
+                        .authenticationEntryPoint(customAuthenticationEntryPoint) // 인증 실패 시 처리할 EntryPoint 설정
                 )
-                // jwtAuthenticationFilter를 먼저 하고 UsernamePasswordAuthenticationFilter
-                // jwtAuthenticationFilter에서 JWT 토큰 확인하고 인증 처리
+                // jwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter 앞에 추가
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 }
