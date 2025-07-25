@@ -41,18 +41,26 @@ jobs:
           name: app-jar
           path: build/libs/*.jar
 
-
   deploy:
     name: Deploy to EC2
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
+    env:
+      EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+
     steps:
       - name: ⬇️ Download JAR from build
         uses: actions/download-artifact@v4
         with:
           name: app-jar
           path: ./jar-output
+
+      - name: 🔐 Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
       - name: 📤 Send JAR to EC2
         run: |
@@ -68,9 +76,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ec2-user/stagemate
             sudo systemctl restart stagemate
-
 
   dependency-submission:
     name: Submit Dependency Graph
