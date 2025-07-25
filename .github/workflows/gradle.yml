@@ -76,8 +76,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo systemctl restart stagemate
-
+            sudo systemctl restart team4
 
   dependency-submission:
     name: Submit Dependency Graph
