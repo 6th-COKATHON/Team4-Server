@@ -46,6 +46,8 @@ public class AuthService {
                 // 유저가 없는 경우 → 생성
                 String encodedPassword = passwordEncoder.encode(password);
                 user = userRepository.save(request.toEntity(encodedPassword));
+                String nickname = "익명" + user.getId();
+                user.setNickname(nickname);
             } else {
                 user = optionalUser.get();
                 // 유저가 있는데 비밀번호 틀린 경우
