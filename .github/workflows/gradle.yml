@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: Build JAR
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,23 +27,41 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: ✅ Create team4_gcs.json
+      - name: ✅ Inject team4_gcs.json with secret key
         run: |
           mkdir -p src/main/resources
           echo "$GCP_PRIVATE_KEY" > src/main/resources/team4_gcs.json
 
-      - name: 🔨 Build with Gradle Wrapper
-        run: ./gradlew build
+      - name: 🔨 Build with Gradle (skip tests)
+        run: ./gradlew bootJar -x test
+
+      - name: 📦 Upload JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: build/libs/*.jar
+
 
   deploy:
+    name: Deploy to EC2
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
-    env:
-      GCP_PRIVATE_KEY: ${{ secrets.GCP_PRIVATE_KEY }}
-
     steps:
-      - name: 🚀 Deploy to EC2 via SSH
+      - name: ⬇️ Download JAR from build
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: ./jar-output
+
+      - name: 📤 Send JAR to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            -i ~/.ssh/id_rsa \
+            ./jar-output/*.jar \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/stagemate/app.jar
+
+      - name: 🚀 Restart App on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -50,12 +69,11 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ec2-user/stagemate
-            git pull origin develop
-            echo "$GCP_PRIVATE_KEY" > src/main/resources/team4_gcs.json
-            ./gradlew clean build -x test
             sudo systemctl restart stagemate
 
+
   dependency-submission:
+    name: Submit Dependency Graph
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -71,7 +89,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: ✅ Create team4_gcs.json
+      - name: ✅ Inject team4_gcs.json
         run: |
           mkdir -p src/main/resources
           echo "$GCP_PRIVATE_KEY" > src/main/resources/team4_gcs.json
