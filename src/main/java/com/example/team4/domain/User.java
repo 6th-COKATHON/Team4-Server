@@ -18,17 +18,16 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
-    private String name;
-
     private String email;
 
     private String password;
 
-    private String refreshToken;
 
-    // refreshToken 업데이트
-    public void updateRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
+    public User of(String email, String password) {
+        return User.builder()
+                .email(email)
+                .password(password)
+                .build();
     }
 
 }

@@ -2,10 +2,8 @@ package com.example.team4.service;
 
 import com.example.team4.domain.User;
 import com.example.team4.dto.request.LoginRequest;
-import com.example.team4.dto.request.SignupRequest;
 import com.example.team4.dto.response.TokenResponse;
 import com.example.team4.global.exception.AppException;
-import com.example.team4.global.exception.user.EmailAlreadyExistsException;
 import com.example.team4.global.exception.user.InvalidCredentialsException;
 import com.example.team4.global.exception.user.InvalidRefreshTokenException;
 import com.example.team4.global.exception.user.UserNotFoundException;
@@ -18,6 +16,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import static com.example.team4.global.exception.CommonErrorCode.INTERNAL_SERVER_ERROR;
 import static com.example.team4.global.exception.user.UserErrorCode.*;
@@ -33,89 +33,44 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
 
-    // 이메일 중복 확인 메소드
-    public boolean isEmailDuplicate(String email) {
-        return userRepository.existsByEmail(email);
-    }
-
-
-    public void signup(SignupRequest request) {
-        // 이미 가입한 이메일인지 확인
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new EmailAlreadyExistsException(EMAIL_ALREADY_EXISTS);
-        }
-
-        // 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-        userRepository.save(request.toEntity(encodedPassword));
-    }
 
     public TokenResponse login(LoginRequest request) {
         try {
             String email = request.getEmail();
             String password = request.getPassword();
 
-            // AuthenticationManager를 통한 인증 처리
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, password)
-            );
+            Optional<User> optionalUser = userRepository.findByEmail(email);
+            User user;
 
-            User user = findUserByEmail(email);
+            if (optionalUser.isEmpty()) {
+                // 유저가 없는 경우 → 생성
+                String encodedPassword = passwordEncoder.encode(password);
+                user = userRepository.save(request.toEntity(encodedPassword));
+            } else {
+                user = optionalUser.get();
+                // 유저가 있는데 비밀번호 틀린 경우
+                if (!passwordEncoder.matches(password, user.getPassword())) {
+                    throw new AppException(INVALID_CREDENTIALS);
+                }
 
-            // 인증 성공 시 토큰 생성 로직
+                // 유저 존재 + 비밀번호 일치 → 인증 처리
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(email, password)
+                );
+            }
+
+            // 토큰 생성
             String accessToken = jwtTokenProvider.createToken(user.getId());
-            String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
 
-            // 사용자 조회
-
-            user.updateRefreshToken(refreshToken);
-
-            return new TokenResponse(accessToken, refreshToken);
+            return new TokenResponse(accessToken);
 
         } catch (AuthenticationException e) {
             // 이메일이나 비밀번호가 잘못된 경우
-            throw new InvalidCredentialsException(INVALID_CREDENTIALS);
+            throw new AppException(INVALID_CREDENTIALS);
         } catch (Exception e) {
             // 기타 예외 처리
             throw new AppException(INTERNAL_SERVER_ERROR);
         }
-    }
-
-
-    // RefreshToken을 받아 Access Token 재발급
-    public String reissue(String refreshToken) {
-
-        // Refresh Token 유효성 검사
-        // JWT 토큰이 유효하지 않거나 만료된 경우 예외 발생
-        if (!jwtTokenProvider.validateToken(refreshToken)) {
-            throw new InvalidRefreshTokenException(INVALID_REFRESH_TOKEN);
-        }
-
-        Long userId = jwtTokenProvider.getUserId(refreshToken);
-        User user = findUserById(userId);
-
-        // Refresh Token이 사용자 정보와 일치하는지 확인
-        if (!refreshToken.equals(user.getRefreshToken())) {
-            throw new InvalidRefreshTokenException(INVALID_REFRESH_TOKEN);
-        }
-
-        return jwtTokenProvider.createToken(user.getId());
-    }
-
-
-    public void logout(Long userId) {
-        User user = findUserById(userId);
-        user.updateRefreshToken(null); // Refresh Token 무효화
-    }
-
-    private User findUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(NOT_FOUND));
-    }
-
-    private User findUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(NOT_FOUND));
     }
 
 }
